@@ -24,3 +24,6 @@ __pycache__/
 assets/to_edit/
 # Drive pipeline runtime ledger (per-machine state)
 drive_sync/state.json
+
+# Local PII deny-list for transcript redaction — contains real member names
+tools/pii_config.json

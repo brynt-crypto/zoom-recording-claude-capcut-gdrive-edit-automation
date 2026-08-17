@@ -70,9 +70,13 @@ the user at each ⛔ gate.
    - Prep: `./.venv/Scripts/python.exe -m finishing.pipeline <job> --prep`
    - Read `jobs/<job>/transcript_final.json` and write
      `jobs/<job>/finishing_manifest.json` per the `finishing/prompts/` guides
-     (beats, subtitles, overlays, punch-ins, end-screen).
-   - Build with captions: `./.venv/Scripts/python.exe -m finishing.pipeline <job> --captions`
+     (beats, subtitles, overlays, punch-ins). **Never author an `end_screen` beat.**
+   - Build with captions and no end card:
+     `./.venv/Scripts/python.exe -m finishing.pipeline <job> --captions --no-endscreen`
      (CapCut must be closed). Result: draft `<job>_(CFE Edit)_v1`.
+   - ⛔ **No end card, ever.** `--no-endscreen` is mandatory: the video runs straight
+     from the last spoken line into the branded `outro.mp4`. Keep the outro — never
+     pass `--no-outro`. (Standing instruction, 2026-07-30.)
 
 7. ⛔ **Gate — approve the edit.** Notify the user clearly: **"The edit is done."**
    Report the `<job>_(CFE Edit)_v1` draft and what was added. Ask whether they
@@ -120,6 +124,27 @@ the user at each ⛔ gate.
       (the destination is defined by `UPLOAD_DIR`/`UPLOAD_LINK` in `drive_sync/config.py`,
       which read `DRIVE_UPLOAD_DIR`/`DRIVE_UPLOAD_FOLDER_URL` from your `.env`)
     - Ledger status for this recording (from `drive_sync/state.json`)
+
+## STEP 3.5 — Offer the censored transcript (always offer, never assume)
+
+12b. Once the upload is confirmed, **offer to censor the transcript** — don't wait to be
+    asked. This job already has a transcript, so the redactor reuses it instead of
+    re-transcribing (faster, and it uses the larger Whisper model this pipeline ran).
+
+    Ask: *"Want the censored transcript for this call?"* On yes, run it from the
+    **Sir BRY** project (that's where the redactor lives — do not copy anything across):
+    ```
+    cd "/Users/bry/Library/CloudStorage/OneDrive-Personal/Phillip(Phylsong)/CLAUDE CODE/Sir BRY (My AI Agent)"
+    ./.venv-mac/bin/python tools/run_transcript_redactor.py --autoedit <job> --dry-run
+    ```
+    **Always dry-run first and audit it** before creating the Doc — grep the output for
+    participant first names AND for business names / domains / emails, which the name
+    detector does not catch on its own. Anything that leaks goes into `known_names.txt`,
+    then re-run. Only then run it again without `--dry-run` to create the Google Doc.
+
+    If they also want it on the portal, that's the **portal lesson**: `/portal-description`
+    for the lesson title + description, and `tools/publish_transcript.py` for the
+    transcript field. Never use the `/youtube` skill for portal copy — wrong brand.
 
 ## STEP 4 — Reclaim disk space (always offer, never assume)
 

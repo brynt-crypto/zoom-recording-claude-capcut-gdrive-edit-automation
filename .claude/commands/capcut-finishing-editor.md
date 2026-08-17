@@ -28,8 +28,9 @@ a manifest skeleton, and `jobs/<job>/style_frames/*.jpg` sampled from
 ## 3. Plan the beats (you, Claude)
 
 Read `finishing/prompts/00_system.md` then `01_beat_selection.md`, `02_report.md`,
-`03_manifest.md`, `04_subtitles.md`, `05_overlays.md`, `06_punch_ins.md`,
-`07_end_screen.md`. Look at the `style_frames` images to match the aesthetic.
+`03_manifest.md`, `04_subtitles.md`, `05_overlays.md`, `06_punch_ins.md`.
+(Skip `07_end_screen.md` — see the no-end-card rule below.)
+Look at the `style_frames` images to match the aesthetic.
 Read `transcript_final.json` and select ONLY the strongest beats (hook, promise,
 tool names, steps, comparisons, benefits, CTA). Then:
 - Show the user the **report** (visual direction, beat-by-beat, subtitle guide,
@@ -50,11 +51,30 @@ Check:
 powershell -c "[bool](Get-Process CapCut -ErrorAction SilentlyContinue)"
 ```
 
-If `True`, ask the user to close CapCut, then continue. Build:
+If `True`, ask the user to close CapCut, then continue.
+
+> **First build on a new machine.** The overlay cards are rendered through headless
+> Chromium via Playwright, which is NOT installed by `pip install -r requirements.txt`.
+> If the build dies with `BrowserType.launch: Executable doesn't exist`, install it once:
+> ```
+> ./.venv-mac/bin/python -m playwright install chromium     # macOS
+> ./.venv/Scripts/python.exe -m playwright install chromium # Windows
+> ```
+> ~93 MB, one time per machine. Then re-run the build. (Hit on macOS 2026-08-14.)
+
+Build:
 ```
 ./.venv/Scripts/python.exe -m finishing.pipeline <job> \
-    --accent "#22D3EE" [--name-title "Name|Title"] [--no-endscreen]
+    --no-endscreen --accent "#22D3EE" [--name-title "Name|Title"]
 ```
+
+## ⛔ NO END CARD — always
+
+`--no-endscreen` is **mandatory on every build**, and never author an `end_screen`
+beat in `finishing_manifest.json`. The video must run straight from the last spoken
+line into the branded `outro.mp4`, which already closes it — an end screen in front
+of the outro is a redundant second ending. (Standing instruction, 2026-07-30.)
+Keep the outro: use `--no-endscreen`, never `--no-outro`.
 
 This creates `<job>_(CFE Edit)_v1` (auto-versions to `_v2`… on re-runs) in the
 CapCut drafts folder, never touching the rough-cut draft. Tell the user to open
