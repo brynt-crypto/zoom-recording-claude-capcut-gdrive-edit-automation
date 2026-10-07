@@ -1,0 +1,45 @@
+[project]
+name = "auto-vedit"
+version = "1.0.0"
+description = "Zoom recording to a polished, still-editable CapCut draft: censor, rough cut, finishing."
+requires-python = ">=3.11"
+
+# The core install: everything /censor, /roughcut and /capcut-finishing-editor
+# need. Versions are floors, not pins — requirements.txt holds the exact set
+# that is known to work.
+dependencies = [
+    "faster-whisper>=1.2",
+    "av>=17",
+    "numpy>=2",
+    "pillow>=11",
+    "playwright>=1.40",       # renders the cards through headless Chromium
+    "pycapcut>=0.0.3",
+    "pyjianyingdraft>=0.2.6",
+    "pymediainfo>=7",
+    "pydub>=0.25",
+    "typer>=0.25",
+    "rich>=15",
+    "PyYAML>=6",
+]
+
+[project.optional-dependencies]
+# /animate with Google Imagen. Without it, --provider manual still works.
+animate = ["google-genai>=1.0"]
+# NVIDIA GPU transcription (--device cuda) and the Windows UI helpers.
+windows-gpu = [
+    "nvidia-cublas-cu12>=12.9 ; sys_platform == 'win32'",
+    "nvidia-cuda-nvrtc-cu12>=12.9 ; sys_platform == 'win32'",
+    "nvidia-cudnn-cu12>=9.23 ; sys_platform == 'win32'",
+    "comtypes>=1.4 ; sys_platform == 'win32'",
+    "uiautomation>=2.0 ; sys_platform == 'win32'",
+]
+dev = ["pytest>=8"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+# Quiet, but loud about the first failure — most of these tests shell out to
+# ffmpeg, so one broken environment fails everything after it.
+addopts = "-q"
+
+[tool.setuptools]
+packages = ["roughcut", "finishing", "censor", "animate", "drive_sync", "common"]

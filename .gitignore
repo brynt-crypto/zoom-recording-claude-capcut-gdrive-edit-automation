@@ -1,0 +1,34 @@
+# Secrets / machine-local config — never commit
+.env
+.env.*
+!.env.example
+
+# OS / editor junk
+.DS_Store
+
+# Ad-hoc backups taken before a risky edit — git already keeps history
+*.bak
+*-bak
+*.pre-*
+
+# Machine-specific pinned requirements (keep only the shared requirements.txt)
+requirements-*.txt
+
+.venv/
+.venv-mac/
+jobs/
+work/
+sandbox_drafts/
+outputs/
+assets/style_ref/
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# Raw-media drop folder (large source videos — not source-controlled)
+assets/to_edit/
+# Drive pipeline runtime ledger (per-machine state)
+drive_sync/state.json
+
+# Local PII deny-list for transcript redaction — contains real member names
+tools/pii_config.json

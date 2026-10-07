@@ -1,0 +1,135 @@
+<!-- finishing/templates/card_v2.html — structured glass cards for CFE v2.
+     Unlike v1's card.html this preserves line structure: the first line is the
+     title and each following line becomes a list row, so multi-line copy no
+     longer collapses into one run-on sentence. -->
+<!doctype html><html><head><meta charset="utf-8"><style>
+  html,body{margin:0;background:transparent;}
+  *{box-sizing:border-box;
+    font-family:'Inter','Helvetica Neue','Segoe UI',Arial,sans-serif;}
+  .wrap{display:flex;align-items:center;justify-content:center;
+        width:100vw;height:100vh;padding:26px;}
+  .card{position:relative;width:100%;padding:30px 34px;border-radius:24px;
+        background:linear-gradient(160deg,
+                   rgba(18,24,32,0.90) 0%, rgba(9,12,17,0.94) 100%);
+        border:1px solid rgba(255,255,255,0.13);
+        box-shadow:0 22px 60px rgba(0,0,0,0.55),
+                   inset 0 1px 0 rgba(255,255,255,0.14);}
+  /* accent hairline down the left edge reads as "premium UI", not sticker */
+  .card::before{content:'';position:absolute;left:0;top:18px;bottom:18px;
+        width:4px;border-radius:0 3px 3px 0;background:var(--accent);
+        opacity:.95;}
+  .tag{display:inline-block;font-size:17px;font-weight:700;letter-spacing:.14em;
+       text-transform:uppercase;color:var(--accent);margin-bottom:8px;}
+  .title{font-size:42px;font-weight:750;color:#F4F8FC;line-height:1.12;
+         letter-spacing:-0.01em;}
+  .rows{margin-top:16px;display:flex;flex-direction:column;gap:11px;}
+  .row{display:flex;align-items:flex-start;gap:13px;
+       font-size:27px;line-height:1.28;color:#C9D6E2;}
+  .bullet{flex:0 0 auto;margin-top:11px;width:8px;height:8px;border-radius:50%;
+          background:var(--accent);opacity:.9;}
+  .num{flex:0 0 auto;min-width:34px;height:34px;border-radius:9px;
+       background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.14);
+       color:var(--accent);font-size:18px;font-weight:700;
+       display:flex;align-items:center;justify-content:center;}
+  .check{flex:0 0 auto;margin-top:2px;width:26px;height:26px;border-radius:8px;
+         background:var(--accent);color:#080C11;font-size:18px;font-weight:800;
+         display:flex;align-items:center;justify-content:center;}
+  .node{flex:0 0 auto;margin-top:6px;width:14px;height:14px;border-radius:50%;
+        border:3px solid var(--accent);background:#0B0F14;}
+  /* stat counter */
+  .stat{font-size:104px;font-weight:800;color:#F4F8FC;line-height:1;
+        letter-spacing:-0.02em;}
+  .statlabel{margin-top:8px;font-size:26px;color:#9FB0BF;letter-spacing:.02em;}
+  /* quote */
+  .quote{font-size:38px;line-height:1.26;color:#F4F8FC;font-weight:600;}
+  .quote .mark{color:var(--accent);font-size:52px;line-height:0;
+        vertical-align:-14px;margin-right:6px;}
+  .attrib{margin-top:16px;font-size:23px;color:#9FB0BF;}
+  /* comparison */
+  .cmp{display:flex;gap:22px;}
+  .cmp .side{flex:1;padding:18px 20px;border-radius:16px;
+        background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.10);}
+  .cmp .side.after{border-color:var(--accent);
+        background:linear-gradient(160deg, rgba(34,211,238,0.10), rgba(0,0,0,0));}
+  .cmp h4{margin:0 0 8px;font-size:18px;letter-spacing:.14em;font-weight:700;
+        text-transform:uppercase;color:#8FA1B2;}
+  .cmp .side.after h4{color:var(--accent);}
+  .cmp p{margin:0;font-size:26px;line-height:1.25;color:#DCE7F1;}
+  /* bar chart */
+  .bars{margin-top:16px;display:flex;flex-direction:column;gap:12px;}
+  .bar{display:flex;align-items:center;gap:14px;font-size:23px;color:#C9D6E2;}
+  .bar .lab{flex:0 0 34%;text-align:right;color:#9FB0BF;}
+  .bar .track{flex:1;height:22px;border-radius:11px;
+        background:rgba(255,255,255,0.06);overflow:hidden;}
+  .bar .fill{height:100%;border-radius:11px;background:var(--accent);opacity:.92;}
+  .bar .val{flex:0 0 auto;color:#F4F8FC;font-weight:700;}
+</style></head><body>
+  <div class="wrap"><div class="card" id="card"></div></div>
+<script>
+(function(){
+  const p = new URLSearchParams(location.search);
+  const accent = p.get('accent') || '#22D3EE';
+  document.documentElement.style.setProperty('--accent', accent);
+  const kind  = p.get('kind') || 'side_card';
+  const tag   = p.get('tag') || '';
+  const lines = (p.get('title') || '').split('\n')
+                  .map(s => s.trim()).filter(Boolean);
+  const sub   = p.get('sub') || '';
+  const card  = document.getElementById('card');
+  const esc = s => { const d = document.createElement('div');
+                     d.textContent = s; return d.innerHTML; };
+  // Strip a leading bullet/dash so the template owns the marker glyph.
+  const clean = s => s.replace(/^[•\-–—*]\s*/, '');
+  let html = '';
+  if (tag) html += `<div class="tag">${esc(tag)}</div>`;
+
+  const head = lines.length ? lines[0] : '';
+  const rest = lines.slice(1);
+
+  if (kind === 'stat_counter') {
+    html += `<div class="stat">${esc(head)}</div>`;
+    if (rest.length) html += `<div class="statlabel">${esc(rest.join(' '))}</div>`;
+    else if (sub)    html += `<div class="statlabel">${esc(sub)}</div>`;
+  } else if (kind === 'quote') {
+    html += `<div class="quote"><span class="mark">&ldquo;</span>${esc(head)}</div>`;
+    if (rest.length) html += `<div class="attrib">${esc(rest.join(' '))}</div>`;
+    else if (sub)    html += `<div class="attrib">${esc(sub)}</div>`;
+  } else if (kind === 'comparison') {
+    // lines: [title, before…, after…] split on a lone "vs" or two rows
+    const a = rest[0] || '', b = rest[1] || '';
+    if (head) html += `<div class="title">${esc(head)}</div>`;
+    html += `<div class="cmp" style="margin-top:18px">
+        <div class="side"><h4>Before</h4><p>${esc(clean(a))}</p></div>
+        <div class="side after"><h4>After</h4><p>${esc(clean(b))}</p></div></div>`;
+  } else if (kind === 'bar_chart') {
+    if (head) html += `<div class="title">${esc(head)}</div>`;
+    // rows look like "Label | 72" or "Label 72%"
+    const parsed = rest.map(r => {
+      const m = clean(r).split('|');
+      const lab = (m[0] || '').trim();
+      const val = (m[1] || '').trim();
+      const num = parseFloat(val.replace(/[^0-9.]/g, '')) || 0;
+      return {lab, val, num};
+    });
+    const max = Math.max(1, ...parsed.map(x => x.num));
+    html += '<div class="bars">' + parsed.map(x =>
+      `<div class="bar"><div class="lab">${esc(x.lab)}</div>
+        <div class="track"><div class="fill" style="width:${(x.num/max*100).toFixed(1)}%"></div></div>
+        <div class="val">${esc(x.val)}</div></div>`).join('') + '</div>';
+  } else {
+    if (head) html += `<div class="title">${esc(head)}</div>`;
+    if (rest.length) {
+      const marker = i =>
+        kind === 'process_flow' ? `<div class="num">${i+1}</div>`
+      : kind === 'checklist'    ? `<div class="check">&#10003;</div>`
+      : kind === 'timeline'     ? `<div class="node"></div>`
+      :                           `<div class="bullet"></div>`;
+      html += '<div class="rows">' + rest.map((r,i) =>
+        `<div class="row">${marker(i)}<div>${esc(clean(r))}</div></div>`).join('') + '</div>';
+    } else if (sub) {
+      html += `<div class="rows"><div class="row"><div>${esc(sub)}</div></div></div>`;
+    }
+  }
+  card.innerHTML = html;
+})();
+</script></body></html>
